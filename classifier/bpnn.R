@@ -53,7 +53,6 @@ bpnn_train <- function(X,Y,HL,eta=0.1,esp=0.01){
 			}			
 		}
 		err<-error_count/N
-		print(err)
 	}
 	W
 }
