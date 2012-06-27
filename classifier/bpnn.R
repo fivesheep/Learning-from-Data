@@ -1,4 +1,4 @@
-# TODO: Add comment
+# TODO: Need to avoid local minimums
 # 
 # Author: young
 ###############################################################################
@@ -6,7 +6,7 @@
 # HL is a vector contains the number nodes for each hidden layer, sequentially
 # eta is the learning rate
 # esp is the stop condition
-bpnn_train <- function(X,Y,HL,eta=0.1,esp=0.01){
+bpnn_train <- function(X,Y,HL,eta=0.1,esp=0.01,maxIter=99999){
 	
 	dx<-dim(X)
 	N<-dx[1]
@@ -26,7 +26,9 @@ bpnn_train <- function(X,Y,HL,eta=0.1,esp=0.01){
 	
 	# SGD based iterations to train the networks
 	err<-1
-	while(err>esp){
+	last_err<-2
+	it_count<-0
+	while(err>esp && it_count < maxIter){
 		error_count<-0
 		# an epoch of training
 		for(n in sample.int(N)){
@@ -48,27 +50,21 @@ bpnn_train <- function(X,Y,HL,eta=0.1,esp=0.01){
 			for(l in nl:2){
 				W[[l]]<-W[[l]] - eta*Theta[[l-1]]%*%t(Delta[[l]][-1])
 			}
-			if(sign(Theta[[nl]][-1])!=y){
-				error_count<-error_count+1
-			}			
+	
 		}
-		err<-error_count/N
+		err<-sum(bpnn_predict(X,W)!=Y)/N
+		it_count<-it_count+1
 	}
 	W
 }
 
 bpnn_predict <- function(X, W){
 	N<-dim(X)[1]
-	Y<-rep(0,N)
 	nl<-length(W)
 	
-	for(n in 1:N){
-		theta<-c(1,X[n,])
-		for(l in 2:nl){
-			theta<-c(1,tanh(t(W[[l]])%*%theta))
-		}
-		Y[n]<-sign(theta[-1])				
+	Theta<-cbind(rep(1,N),X)
+	for(l in 2:nl){
+		Theta<-cbind(rep(1,N), tanh(Theta%*%W[[l]]))
 	}
-	
-	Y
+	H<-c(sign(Theta[,2]))
 }
